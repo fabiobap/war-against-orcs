@@ -164,7 +164,6 @@
                             function configuracoesIniciais() {
                                 // Fundos
                                 arena.velocidade = 0;
-                                //estrelas.velocidade = 60;
                                 //nuvens.velocidade = 500;
                                 // Personagem
                                 personagem.posicionar();
@@ -194,7 +193,6 @@
                                     }
                                     // Pontuação
                                 colisor.aoColidir = function (o1, o2) {
-                                    // Tiro com Zerk
                                     if ((o1 instanceof Tiro && o2 instanceof Zerk) ||
                                         (o1 instanceof Zerk && o2 instanceof Tiro))
                                         painel.pontuacao += 25; // Use o incremento que desejar
@@ -271,10 +269,8 @@
                             function novoZerk() {
                                 var imgZerk = imagens.zerk;
                                 var zerk = new Zerk(context, imgZerk, imagens.explosao, imagens.fumaca);
-                                // Mínimo: 500; máximo: 1000
                                 zerk.velocidade =
                                     Math.floor(520 + Math.random() * (100 - 400 + 1));
-                                // Mínimo: 0; máximo: largura do canvas - largura do zerk   
                                 zerk.x = personagem.x + 30;
                                 // Descontar a altura
                                 zerk.y = -imgZerk.height;
@@ -300,9 +296,7 @@
                             function novoWarrior() {
                                 var imgWarrior = imagens.warrior;
                                 var warrior = new Warrior(context, imgWarrior, imagens.explosao);
-                                // Mínimo: 500; máximo: 1000
                                 warrior.velocidade = 200;
-                                // Mínimo: 0; máximo: largura do canvas - largura do zerk   
                                 warrior.x =
                                     Math.floor(Math.random() *
                                         (canvas.width / 2 - imgWarrior.width + 300));
@@ -330,9 +324,7 @@
                             function novoShaman() {
                                 var imgShaman = imagens.shaman;
                                 var shaman = new Shaman(context, imgShaman, imagens.explosao, imagens.fumaca);
-                                // Mínimo: 500; máximo: 1000
                                 shaman.velocidade = 200;
-                                // Mínimo: 0; máximo: largura do canvas - largura do zerk   
                                 shaman.x = Math.floor(Math.random() *
                                         (canvas.width / 2 - imgShaman.width + 300))
                                     // Descontar a altura
@@ -360,10 +352,8 @@
                             function novoWarlord() {
                                 var imgWarlord = imagens.warlord;
                                 var warlord = new Warlord(context, imgWarlord, imagens.explosao, imagens.fumaca);
-                                // Mínimo: 500; máximo: 1000
                                 warlord.velocidade = 50;
                                 warlord.velocidade2 = 70;
-                                // Mínimo: 0; máximo: largura do canvas - largura do zerk   
                                 warlord.x = canvas.width / 2;
                                 // Descontar a altura
                                 warlord.y = -20;
@@ -376,10 +366,8 @@
                                 var imgMarauder = imagens.marauder;
                                 var marauder = new Marauder(context, imgMarauder, imagens.explosao, imagens.fumaca);
                                 this.block = true;
-                                // Mínimo: 500; máximo: 1000
                                 marauder.velocidade = 100;
                                 marauder.velocidade2 = 170;
-                                // Mínimo: 0; máximo: largura do canvas - largura do zerk   
                                 marauder.x = Math.floor(Math.random() * (canvas.width / 2 - imgMarauder.width + 5));
                                 // Descontar a altura
                                 marauder.y = -30;
@@ -410,9 +398,7 @@
                             function novoBoots() {
                                 var imgBoots = imagens.boots;
                                 var boots = new Boots(context, imgBoots);
-                                // Mínimo: 500; máximo: 1000
                                 boots.velocidade = 80;
-                                // Mínimo: 0; máximo: largura do canvas - largura do zerk   
                                 boots.x =
                                     Math.floor(Math.random() *
                                         (canvas.width / 2 - imgBoots.width + 250));
@@ -441,9 +427,7 @@
                             function novoHealth() {
                                 var imgHealth = imagens.health;
                                 var health = new Health(context, imgHealth);
-                                // Mínimo: 500; máximo: 1000
                                 health.velocidade = 80;
-                                // Mínimo: 0; máximo: largura do canvas - largura do zerk   
                                 health.x =
                                     Math.floor(Math.random() *
                                         (canvas.width / 2 - imgHealth.width + 250));
