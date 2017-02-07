@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- build:js js/jogoload.js-->
+    <script src="js/jogo/animacao.js"></script>
+    <script src="js/jogo/teclado.js"></script>
+    <script src="js/jogo/colisor.js"></script>
+    <script src="js/jogo/fundo.js"></script>
+    <script src="js/jogo/personagem.js"></script>
+    <script src="js/jogo/zerk.js"></script>
+    <script src="js/jogo/warrior.js"></script>
+    <script src="js/jogo/shaman.js"></script>
+    <script src="js/jogo/warlord.js"></script>
+    <script src="js/jogo/marauder.js"></script>
+    <script src="js/jogo/item_boh.js"></script>
+    <script src="js/jogo/item_hp.js"></script>
+    <script src="js/jogo/tiro.js"></script>
+    <script src="js/jogo/tiro2.js"></script>
+    <script src="js/jogo/tiro_shaman.js"></script>
+    <script src="js/jogo/tiro_warlord.js"></script>
+    <script src="js/jogo/tiro_marauder.js"></script>
+    <script src="js/jogo/tiro_marauderdiag.js"></script>
+    <script src="js/jogo/tiro_marauderdiag2.js"></script>
+    <script src="js/jogo/spritesheet.js"></script>
+    <script src="js/jogo/explosao.js"></script>
+    <script src="js/jogo/fumaca.js"></script>
+    <script src="js/jogo/morto.js"></script>
+    <script src="js/jogo/painel.js"></script>
+    <!-- endbuild-->
+
+    <!-- Bootstrap core CSS -->
+    <!-- build:css css/jogo.css-->
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/cover.css" rel="stylesheet">
+    <!-- endbuild-->
+    <script>
+        window.top.document.onkeydown = function (evt) {
+            evt = evt || window.event;
+            var keyCode = evt.keyCode;
+            if (keyCode >= 30 && keyCode <= 40) {
+                return false;
+            }
+        };
+    </script>
+</head>
+
+<body>
+    <div class="site-wrapper">
+        <div class="site-wrapper-inner">
+            <div class="cover-container">
+                <div class="inner cover">
+                    <h1 class="cover-heading">Jogo em HTML5 Canvas</h1>
+                    <h4 class="versao">Versão 1.3 - 27/09/2015</h4>
+                    <p class="lead">
+                        <canvas id="canvas_animacao" width="500" height="500"></canvas>
+                        <script>
+                            var canvas = document.getElementById('canvas_animacao');
+                            var context = canvas.getContext('2d');
+
+                            // Variáveis principais
+                            var imagens, animacao, teclado, colisor, personagem, criadorInimigos, criadorWarrior, criadorWarlord, criadorShaman, criadorBoots, criadorHealth, criadorBoss;
+                            var totalImagens = 0,
+                                carregadas = 0,
+                                block = false;
+                            var musicaAcao;
+
+                            var SOM_FAILURE = new Audio();
+                            SOM_FAILURE.src = 'snd/failure.mp3';
+                            SOM_FAILURE.volume = 0.6;
+                            SOM_FAILURE.type = 'type="audio/mp3';
+                            SOM_FAILURE.load();
+
+                            //Carregando as imagens e musicas
+                            carregarImagens();
+                            carregarMusicas();
+
+                            function carregarImagens() {
+                                // Objeto contendo os nomes das imagens
+                                imagens = {
+                                    arena: 'fundo-arena.jpg',
+                                    //nuvens: 'fundo-nuvens.png',
+                                    personagem: 'personagem-spritesheet.png',
+                                    zerk: 'zerk_sheet.png',
+                                    warrior: 'warrior_sheet.png',
+                                    shaman: 'shaman_sheet.png',
+                                    warlord: 'warlord_sheet.png',
+                                    marauder: 'marauder_sheet.png',
+                                    boots: 'Boots_of_Haste.png',
+                                    health: 'Heart_Pillow.png',
+                                    explosao: 'explosao.png',
+                                    fumaca: 'blood_sheet.png',
+                                    morto: 'female_morto_spritesheet.png',
+                                    //warriordedi:'warrior_dedi_spritesheet.png',
+                                    flechacima: 'burst_arrowcima.png',
+                                    flechabaixo: 'burst_arrowbaixo.png',
+                                    flechaesquerda: 'burst_arrowesquerda.png',
+                                    flechadireita: 'burst_arrowdireita.png',
+                                    fireball: 'fireball_spritesheet.png',
+                                    sword: 'sword_spritesheet.png',
+                                    shiverbaixo: 'shiver_arrowbaixo.png',
+                                    shiverdiagesquerda: 'shiver_arrowdiagesquerda.png',
+                                    shiverdiagdireita: 'shiver_arrowdiagdireita.png'
+                                };
+                                // Carregar todas
+                                for (var i in imagens) {
+                                    var img = new Image();
+                                    img.src = 'img/jogo/' + imagens[i];
+                                    img.onload = carregando;
+                                    totalImagens++;
+                                    // Substituir o nome pela imagem
+                                    imagens[i] = img;
+                                }
+                            }
+                            //Carregando tudo
+                            function carregando() {
+                                context.save();
+                                // Fundo
+                                context.drawImage(imagens.arena, 0, 0, canvas.width, canvas.height);
+                                // Texto "Carregando"
+                                context.fillStyle = 'white';
+                                context.strokeStyle = 'black';
+                                context.font = '50px sans-serif';
+                                context.fillText("Carregando...", 100, 200);
+                                context.strokeText("Carregando...", 100, 200);
+                                // Barra de loading
+                                carregadas++;
+                                var tamanhoTotal = 300;
+                                var tamanho = carregadas / totalImagens * tamanhoTotal;
+                                context.fillStyle = '#0080FF';
+                                context.strokeStyle = 'black';
+                                context.strokeRect(100, 250, tamanho, 50)
+                                context.fillRect(100, 250, tamanho, 50);
+
+                                context.restore();
+                                if (carregadas == totalImagens) {
+                                    iniciarObjetos();
+                                    mostrarLinkJogar();
+                                }
+                            }
+
+                            function iniciarObjetos() {
+                                // Objetos principais
+                                animacao = new Animacao(context);
+                                teclado = new Teclado(document);
+                                colisor = new Colisor();
+                                arena = new Fundo(context, imagens.arena);
+                                //estrelas = new Fundo(context, imagens.estrelas);
+                                //nuvens = new Fundo(context, imagens.nuvens);
+                                personagem = new Personagem(context, teclado, imagens.personagem, imagens.explosao, imagens.morto);
+                                painel = new Painel(context, personagem);
+
+                                // Ligações entre objetos
+                                animacao.novoSprite(arena);
+                                //animacao.novoSprite(estrelas);
+                                animacao.novoSprite(painel);
+                                animacao.novoSprite(personagem);
+                                //animacao.novoSprite(nuvens);
+                                colisor.novoSprite(personagem);
+                                animacao.novoProcessamento(colisor);
+                                configuracoesIniciais();
+                            }
+
+                            function configuracoesIniciais() {
+                                // Fundos
+                                arena.velocidade = 0;
+                                //estrelas.velocidade = 60;
+                                //nuvens.velocidade = 500;
+                                // Personagem
+                                personagem.posicionar();
+                                personagem.velocidade = 4;
+                                // Inimigos
+                                criacaoInimigos();
+                                criacaoWarrior();
+                                criacaoShaman();
+                                criacaoWarlord();
+                                criacaoBoss();
+                                //Items
+                                criacaoBoots();
+                                criacaoHealth();
+                                //Cheat Da vida
+                                teclado.disparou(TECLA_V, function () {
+                                    if (personagem.vidasExtras < 3)
+                                        personagem.vidasExtras = personagem.vidasExtras + 1;
+                                });
+                                //Cheat velocidade
+                                teclado.disparou(TECLA_T, function () {
+                                    personagem.velocidade = 10;
+                                });
+                                // Game Over
+                                personagem.acabaramVidas = function () {
+                                        animacao.desligar();
+                                        gameOver();
+                                    }
+                                    // Pontuação
+                                colisor.aoColidir = function (o1, o2) {
+                                    // Tiro com Zerk
+                                    if ((o1 instanceof Tiro && o2 instanceof Zerk) ||
+                                        (o1 instanceof Zerk && o2 instanceof Tiro))
+                                        painel.pontuacao += 25; // Use o incremento que desejar
+
+                                    if ((o1 instanceof Tiro && o2 instanceof Warrior) ||
+                                        (o1 instanceof Warrior && o2 instanceof Tiro))
+                                        painel.pontuacao += 10;
+
+                                    if ((o1 instanceof Tiro && o2 instanceof Shaman) ||
+                                        (o1 instanceof Shaman && o2 instanceof Tiro))
+                                        painel.pontuacao += 40;
+
+                                    if ((o1 instanceof Tiro && o2 instanceof Warlord) ||
+                                        (o1 instanceof Warlord && o2 instanceof Tiro))
+                                        painel.pontuacao += 60;
+
+                                    if ((o1 instanceof Tiro && o2 instanceof Marauder) ||
+                                        (o1 instanceof Marauder && o2 instanceof Tiro))
+                                        painel.pontuacao += 120;
+
+                                    if ((o1 instanceof Tiro2 && o2 instanceof Zerk) ||
+                                        (o1 instanceof Zerk && o2 instanceof Tiro2))
+                                        painel.pontuacao += 25; // Use o incremento que desejar
+
+                                    if ((o1 instanceof Tiro2 && o2 instanceof Warrior) ||
+                                        (o1 instanceof Warrior && o2 instanceof Tiro2))
+                                        painel.pontuacao += 10;
+
+                                    if ((o1 instanceof Tiro2 && o2 instanceof Shaman) ||
+                                        (o1 instanceof Shaman && o2 instanceof Tiro2))
+                                        painel.pontuacao += 40;
+
+                                    if ((o1 instanceof Tiro2 && o2 instanceof Warlord) ||
+                                        (o1 instanceof Warlord && o2 instanceof Tiro2))
+                                        painel.pontuacao += 60;
+
+                                    if ((o1 instanceof Tiro2 && o2 instanceof Marauder) ||
+                                        (o1 instanceof Marauder && o2 instanceof Tiro2))
+                                        painel.pontuacao += 120;
+                                }
+                            }
+
+                            function criacaoBoss() {
+                                criadorBoss = {
+                                    ultimoBoss: new Date().getTime(),
+                                    processar: function () {
+                                        var agora = new Date().getTime();
+                                        var decorrido = agora - this.ultimoBoss;
+                                        var pontos = painel.pontuacao;
+                                        this.block = block;
+                                        if ((pontos >= 5000) && (block == false)) {
+                                            novoMarauder();
+                                        }
+                                    }
+                                };
+                                animacao.novoProcessamento(criadorBoss);
+                            }
+                            //Funcao criar inimigo
+                            function criacaoInimigos() {
+                                criadorInimigos = {
+                                    ultimoZerk: new Date().getTime(),
+                                    processar: function () {
+                                        var agora = new Date().getTime();
+                                        var decorrido = agora - this.ultimoZerk;
+                                        if (decorrido > 10000) {
+                                            novoZerk();
+                                            this.ultimoZerk = agora;
+                                        }
+                                    }
+                                };
+                                animacao.novoProcessamento(criadorInimigos);
+                            }
+                            //Funcao criar inimigo
+                            function novoZerk() {
+                                var imgZerk = imagens.zerk;
+                                var zerk = new Zerk(context, imgZerk, imagens.explosao, imagens.fumaca);
+                                // Mínimo: 500; máximo: 1000
+                                zerk.velocidade =
+                                    Math.floor(520 + Math.random() * (100 - 400 + 1));
+                                // Mínimo: 0; máximo: largura do canvas - largura do zerk   
+                                zerk.x = personagem.x + 30;
+                                // Descontar a altura
+                                zerk.y = -imgZerk.height;
+                                animacao.novoSprite(zerk);
+                                colisor.novoSprite(zerk);
+                            }
+                            //Funcao criar inimigo
+                            function criacaoWarrior() {
+                                criadorWarrior = {
+                                    ultimoWarrior: new Date().getTime(),
+                                    processar: function () {
+                                        var agora = new Date().getTime();
+                                        var decorrido = agora - this.ultimoWarrior;
+                                        if (decorrido > 1000) {
+                                            novoWarrior();
+                                            this.ultimoWarrior = agora;
+                                        }
+                                    }
+                                };
+                                animacao.novoProcessamento(criadorWarrior);
+                            }
+                            //Funcao criar inimigo
+                            function novoWarrior() {
+                                var imgWarrior = imagens.warrior;
+                                var warrior = new Warrior(context, imgWarrior, imagens.explosao);
+                                // Mínimo: 500; máximo: 1000
+                                warrior.velocidade = 200;
+                                // Mínimo: 0; máximo: largura do canvas - largura do zerk   
+                                warrior.x =
+                                    Math.floor(Math.random() *
+                                        (canvas.width / 2 - imgWarrior.width + 300));
+                                // Descontar a altura
+                                warrior.y = -imgWarrior.height;
+                                animacao.novoSprite(warrior);
+                                colisor.novoSprite(warrior);
+                            }
+                            //Funcao criar inimigo
+                            function criacaoShaman() {
+                                criadorShaman = {
+                                    ultimoShaman: new Date().getTime(),
+                                    processar: function () {
+                                        var agora = new Date().getTime();
+                                        var decorrido = agora - this.ultimoShaman;
+                                        if (decorrido > 25000) {
+                                            novoShaman();
+                                            this.ultimoShaman = agora;
+                                        }
+                                    }
+                                };
+                                animacao.novoProcessamento(criadorShaman);
+                            }
+                            //Funcao criar inimigo
+                            function novoShaman() {
+                                var imgShaman = imagens.shaman;
+                                var shaman = new Shaman(context, imgShaman, imagens.explosao, imagens.fumaca);
+                                // Mínimo: 500; máximo: 1000
+                                shaman.velocidade = 200;
+                                // Mínimo: 0; máximo: largura do canvas - largura do zerk   
+                                shaman.x = Math.floor(Math.random() *
+                                        (canvas.width / 2 - imgShaman.width + 300))
+                                    // Descontar a altura
+                                shaman.y = 33;
+                                animacao.novoSprite(shaman);
+                                colisor.novoSprite(shaman);
+                                //shaman.atirar();
+                            }
+                            //Funcao criar inimigo
+                            function criacaoWarlord() {
+                                criadorWarlord = {
+                                    ultimoWarlord: new Date().getTime(),
+                                    processar: function () {
+                                        var agora = new Date().getTime();
+                                        var decorrido = agora - this.ultimoWarlord;
+                                        if (decorrido > 110000) {
+                                            novoWarlord();
+                                            this.ultimoWarlord = agora;
+                                        }
+                                    }
+                                };
+                                animacao.novoProcessamento(criadorWarlord);
+                            }
+                            //Funcao criar inimigo
+                            function novoWarlord() {
+                                var imgWarlord = imagens.warlord;
+                                var warlord = new Warlord(context, imgWarlord, imagens.explosao, imagens.fumaca);
+                                // Mínimo: 500; máximo: 1000
+                                warlord.velocidade = 50;
+                                warlord.velocidade2 = 70;
+                                // Mínimo: 0; máximo: largura do canvas - largura do zerk   
+                                warlord.x = canvas.width / 2;
+                                // Descontar a altura
+                                warlord.y = -20;
+                                animacao.novoSprite(warlord);
+                                colisor.novoSprite(warlord);
+                                //warlord.atirar();
+                            }
+
+                            function novoMarauder() {
+                                var imgMarauder = imagens.marauder;
+                                var marauder = new Marauder(context, imgMarauder, imagens.explosao, imagens.fumaca);
+                                this.block = true;
+                                // Mínimo: 500; máximo: 1000
+                                marauder.velocidade = 100;
+                                marauder.velocidade2 = 170;
+                                // Mínimo: 0; máximo: largura do canvas - largura do zerk   
+                                marauder.x = Math.floor(Math.random() * (canvas.width / 2 - imgMarauder.width + 5));
+                                // Descontar a altura
+                                marauder.y = -30;
+                                animacao.novoSprite(marauder);
+                                colisor.novoSprite(marauder);
+                                //shaman.atirar();
+                            }
+
+                            //Funcao criar Boots
+                            function criacaoBoots() {
+                                criadorBoots = {
+                                    ultimoBoots: new Date().getTime(),
+                                    processar: function () {
+                                        var agora = new Date().getTime();
+                                        var decorrido = agora - this.ultimoBoots;
+
+                                        if (decorrido > 30000) {
+                                            novoBoots();
+                                            this.ultimoBoots = agora;
+                                        }
+                                        if (decorrido > 20000)
+                                            personagem.velocidade = 4;
+                                    }
+                                };
+                                animacao.novoProcessamento(criadorBoots);
+                            }
+                            //Nova Boh
+                            function novoBoots() {
+                                var imgBoots = imagens.boots;
+                                var boots = new Boots(context, imgBoots);
+                                // Mínimo: 500; máximo: 1000
+                                boots.velocidade = 80;
+                                // Mínimo: 0; máximo: largura do canvas - largura do zerk   
+                                boots.x =
+                                    Math.floor(Math.random() *
+                                        (canvas.width / 2 - imgBoots.width + 250));
+                                // Descontar a altura
+                                boots.y = -imgBoots.height;
+                                animacao.novoSprite(boots);
+                                colisor.novoSprite(boots);
+                            }
+                            //Funcao criar Health extra
+                            function criacaoHealth() {
+                                criadorHealth = {
+                                    ultimoHealth: new Date().getTime(),
+                                    processar: function () {
+                                        var agora = new Date().getTime();
+                                        var decorrido = agora - this.ultimoHealth;
+
+                                        if (decorrido > 55000) {
+                                            novoHealth();
+                                            this.ultimoHealth = agora;
+                                        }
+                                    }
+                                };
+                                animacao.novoProcessamento(criadorHealth);
+                            }
+                            //Nova vida
+                            function novoHealth() {
+                                var imgHealth = imagens.health;
+                                var health = new Health(context, imgHealth);
+                                // Mínimo: 500; máximo: 1000
+                                health.velocidade = 80;
+                                // Mínimo: 0; máximo: largura do canvas - largura do zerk   
+                                health.x =
+                                    Math.floor(Math.random() *
+                                        (canvas.width / 2 - imgHealth.width + 250));
+                                // Descontar a altura
+                                health.y = -imgHealth.height;
+                                animacao.novoSprite(health);
+                                colisor.novoSprite(health);
+                            }
+                            // Ativa o tiro
+                            function ativarTiro(ativar) {
+                                if (ativar) {
+                                    teclado.disparou(ESPACO, function () {
+                                        personagem.atirar();
+                                    });
+                                } else {
+                                    teclado.disparou(ESPACO, null);
+                                }
+                            }
+                            //Funcao pausar jogo
+                            function pausarJogo() {
+                                if (animacao.ligado) {
+                                    musicaAcao.pause();
+                                    animacao.desligar();
+                                    ativarTiro(false);
+                                    // Escrever "Pausado"
+                                    context.save();
+                                    context.fillStyle = '#1E90FF';
+                                    context.strokeStyle = 'black';
+                                    context.font = '50px sans-serif';
+                                    context.fillText("Pausado", 160, 220);
+                                    context.strokeText("Pausado", 160, 220);
+                                    context.restore();
+                                } else {
+                                    criadorInimigos.ultimoZerk = new Date().getTime();
+                                    criadorShaman.ultimoShaman = new Date().getTime();
+                                    criadorWarlord.ultimoWarlord = new Date().getTime();
+                                    criadorWarrior.ultimoWarrior = new Date().getTime();
+                                    criadorBoots.ultimoBoots = new Date().getTime();
+                                    criadorHealth.ultimoHealth = new Date().getTime();
+                                    criadorBoss.ultimoBoss = new Date().getTime();
+                                    animacao.ligar();
+                                    musicaAcao.play();
+                                    ativarTiro(true);
+                                }
+                            }
+
+                            function carregarMusicas() {
+                                musicaAcao = new Audio();
+                                musicaAcao.src = 'snd/rohan.mp3';
+                                musicaAcao.load();
+                                musicaAcao.volume = 0.4;
+                                musicaAcao.loop = true;
+                            }
+
+                            function mostrarLinkJogar() {
+                                document.getElementById('link_jogar').style.display = 'initial';
+                            }
+
+                            function iniciarJogo() {
+                                criadorInimigos.ultimoZerk = new Date().getTime();
+                                criadorShaman.ultimoShaman = new Date().getTime();
+                                criadorWarlord.ultimoWarlord = new Date().getTime();
+                                criadorWarrior.ultimoWarrior = new Date().getTime();
+                                criadorBoots.ultimoBoots = new Date().getTime();
+                                criadorHealth.ultimoHealth = new Date().getTime();
+                                criadorBoss.ultimoBoss = new Date().getTime();
+                                // Pausa
+                                teclado.disparou(ENTER, pausarJogo);
+                                // Tiro
+                                ativarTiro(true);
+                                painel.pontuacao = 0;
+                                this.block = false;
+                                criacaoBoss();
+                                document.getElementById('link_jogar').style.display = 'none';
+                                musicaAcao.play();
+                                animacao.ligar();
+                            }
+
+                            function gameOver() {
+                                SOM_FAILURE.currentTime = 0.0;
+                                SOM_FAILURE.play();
+                                // Tiro
+                                ativarTiro(false);
+                                // Pausa
+                                teclado.disparou(ENTER, null);
+                                musicaAcao.pause();
+                                musicaAcao.currentTime = 0.0;
+                                // Fundo
+                                context.drawImage(imagens.arena, 0, 0, canvas.width,
+                                    canvas.height);
+                                // Texto "Game Over"
+                                context.save();
+                                context.fillStyle = '#1E90FF';
+                                context.strokeStyle = 'black';
+                                context.font = '70px sans-serif';
+                                context.fillText("GAME OVER", 30, 220);
+                                context.strokeText("GAME OVER", 30, 220);
+                                context.font = '30px sans-serif';
+                                context.fillStyle = 'white';
+                                context.fillText("Pontuacao: ", 40, 280);
+                                context.fillStyle = 'yellow';
+                                context.fillText(painel.pontuacao, 220, 280);
+                                context.restore();
+                                // Volta o link "Jogar"
+                                mostrarLinkJogar();
+                                // Restaurar as condições da personagem
+                                personagem.vidasExtras = 3;
+                                personagem.posicionar();
+                                //remover inimigos
+                                removerInimigos();
+                                removerBoots();
+                                removerHealth();
+                                removerWarrior();
+                                removerWarlord();
+                                removerMarauder();
+                                removerShaman();
+                                removerTiroShaman();
+                                removerTiroWarlord();
+                                removerTiroMarauder();
+                                removerTiroMarauderDiag();
+                                removerTiroMarauderDiag2();
+
+                                animacao.novoSprite(personagem);
+                                colisor.novoSprite(personagem);
+                            }
+
+                            function removerInimigos() {
+                                for (var i in animacao.sprites) {
+                                    if (animacao.sprites[i] instanceof Zerk)
+                                        animacao.excluirSprite(animacao.sprites[i]);
+                                    colisor.excluirSprite(colisor.sprites[i]);
+                                }
+                            }
+
+                            function removerWarrior() {
+                                for (var i in animacao.sprites) {
+                                    if (animacao.sprites[i] instanceof Warrior)
+                                        animacao.excluirSprite(animacao.sprites[i]);
+                                    colisor.excluirSprite(colisor.sprites[i]);
+                                }
+                            }
+
+                            function removerWarlord() {
+                                for (var i in animacao.sprites) {
+                                    if (animacao.sprites[i] instanceof Warlord)
+                                        animacao.excluirSprite(animacao.sprites[i]);
+                                    colisor.excluirSprite(colisor.sprites[i]);
+                                }
+                            }
+
+                            function removerMarauder() {
+                                for (var i in animacao.sprites) {
+                                    if (animacao.sprites[i] instanceof Marauder)
+                                        animacao.excluirSprite(animacao.sprites[i]);
+                                    colisor.excluirSprite(colisor.sprites[i]);
+                                }
+                            }
+
+                            function removerTiroShaman() {
+                                for (var i in animacao.sprites) {
+                                    if (animacao.sprites[i] instanceof TiroShaman)
+                                        animacao.excluirSprite(animacao.sprites[i]);
+                                    colisor.excluirSprite(colisor.sprites[i]);
+                                }
+                            }
+
+                            function removerTiroWarlord() {
+                                for (var i in animacao.sprites) {
+                                    if (animacao.sprites[i] instanceof TiroWarlord)
+                                        animacao.excluirSprite(animacao.sprites[i]);
+                                    colisor.excluirSprite(colisor.sprites[i]);
+                                }
+                            }
+
+                            function removerTiroMarauder() {
+                                for (var i in animacao.sprites) {
+                                    if (animacao.sprites[i] instanceof TiroMarauder)
+                                        animacao.excluirSprite(animacao.sprites[i]);
+                                    colisor.excluirSprite(colisor.sprites[i]);
+                                }
+                            }
+
+                            function removerTiroMarauderDiag() {
+                                for (var i in animacao.sprites) {
+                                    if (animacao.sprites[i] instanceof TiroMarauderDiag)
+                                        animacao.excluirSprite(animacao.sprites[i]);
+                                    colisor.excluirSprite(colisor.sprites[i]);
+                                }
+                            }
+
+                            function removerTiroMarauderDiag2() {
+                                for (var i in animacao.sprites) {
+                                    if (animacao.sprites[i] instanceof TiroMarauderDiag2)
+                                        animacao.excluirSprite(animacao.sprites[i]);
+                                    colisor.excluirSprite(colisor.sprites[i]);
+                                }
+                            }
+
+                            function removerShaman() {
+                                for (var i in animacao.sprites) {
+                                    if (animacao.sprites[i] instanceof Shaman)
+                                        animacao.excluirSprite(animacao.sprites[i]);
+                                    colisor.excluirSprite(colisor.sprites[i]);
+                                }
+                            }
+
+                            function removerHealth() {
+                                for (var i in animacao.sprites) {
+                                    if (animacao.sprites[i] instanceof Health)
+                                        animacao.excluirSprite(animacao.sprites[i]);
+                                }
+                            }
+
+                            function removerBoots() {
+                                for (var i in animacao.sprites) {
+                                    if (animacao.sprites[i] instanceof Boots)
+                                        animacao.excluirSprite(animacao.sprites[i]);
+                                }
+                            }
+                        </script>
+                    </p>
+                    <p class="lead">
+                        <a href="javascript: iniciarJogo()" class="btn btn-lg btn-success" id="link_jogar">Jogar</a>
+                        <!-- Trigger the modal with a button -->
+                        <a class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal" data-backdrop="false" data-show="true" data-keyboard="true">Instruções</a>
+                        <a class="btn btn-warning btn-lg" data-toggle="modal" data-target="#myModal2" data-backdrop="false" data-show="true" data-keyboard="true">Quer Aprender?</a>
+                    </p>
+                    <!-- Modal -->
+                    <div class="modal fade" id="myModal" role="dialog">
+                        <div class="modal-dialog modal-sm">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title">Instruções</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Setas direcionais: Andam</p>
+                                    <p>Espaço: Atira flecha</p>
+                                    <p>Enter: Pausa/Despausa</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal fade" id="myModal2" role="dialog">
+                        <div class="modal-dialog modal-sm">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title">Instruções</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Adquira o livro que ensina toda a mecânica por trás desse jogo <a href="http://www.casadocodigo.com.br/products/livro-jogos-html-javascript">Clique Aqui</a></p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Bootstrap core JavaScript ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <!-- build:js js/jogofuncionamento.js-->
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <!-- endbuild -->
+</body>
+
+</html>
