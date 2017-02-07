@@ -48,7 +48,6 @@
         };
     </script>
 </head>
-
 <body>
     <div class="site-wrapper">
         <div class="site-wrapper-inner">
@@ -95,7 +94,6 @@
                                     explosao: 'explosao.png',
                                     fumaca: 'blood_sheet.png',
                                     morto: 'female_morto_spritesheet.png',
-                                    //warriordedi:'warrior_dedi_spritesheet.png',
                                     flechacima: 'burst_arrowcima.png',
                                     flechabaixo: 'burst_arrowbaixo.png',
                                     flechaesquerda: 'burst_arrowesquerda.png',
@@ -149,14 +147,12 @@
                                 teclado = new Teclado(document);
                                 colisor = new Colisor();
                                 arena = new Fundo(context, imagens.arena);
-                                //estrelas = new Fundo(context, imagens.estrelas);
                                 //nuvens = new Fundo(context, imagens.nuvens);
                                 personagem = new Personagem(context, teclado, imagens.personagem, imagens.explosao, imagens.morto);
                                 painel = new Painel(context, personagem);
 
                                 // Ligações entre objetos
                                 animacao.novoSprite(arena);
-                                //animacao.novoSprite(estrelas);
                                 animacao.novoSprite(painel);
                                 animacao.novoSprite(personagem);
                                 //animacao.novoSprite(nuvens);
