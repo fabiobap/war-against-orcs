@@ -1,0 +1,98 @@
+body {
+    padding-top: 30px;
+    background-color: black;
+}
+p{
+    font-size: 15px;
+    color: white;
+}
+h2{
+    font-size: 25px;
+}
+h1, h2{
+    color: #FFFF4D;
+}
+.modal-body p{
+    color: black;
+}
+.starter-template {
+  padding: 30px 15px;
+  text-align: center;
+}
+#link_faseum,
+    #link_fasedois,
+    #link_fasetres,
+    #link_fasequatro {
+        /* Inicia oculto */
+        display: none;
+        /* Cores e fundo */
+        color: #FFFF4D;
+        background: url(../img/botao-jogar.png);
+        /* Fonte */
+        font-size: 20px;
+        font-family: sans-serif;
+        /* Sem sublinhado e com sombra */
+        text-decoration: none;
+        text-shadow: 2px 2px 5px black;
+        /* Posicionamento */
+        position: absolute;
+        left: 260px;
+        top: 450px;
+        /* A imagem do botão é 72x72, descontamos os paddings */
+        width: 72px;
+        height: 72px;
+        padding: 23px 10px;
+    }
+    
+    #link_continua {
+        /* Inicia oculto */
+        display: none;
+        /* Cores e fundo */
+        color: #FFFF4D;
+        background: url(../img/botao-continua.png);
+        /* Fonte */
+        font-size: 20px;
+        font-family: sans-serif;
+        /* Sem sublinhado e com sombra */
+        text-decoration: none;
+        text-shadow: 2px 2px 5px black;
+        /* Posicionamento */
+        position: absolute;
+        left: 230px;
+        top: 350px;
+        /* A imagem do botão é 72x72, descontamos os paddings */
+        width: 120px;
+        height: 65px;
+        padding: 23px 18px;
+    }
+    
+    .personagens {
+        border: 2px;
+        border-left-width: thick;
+        display: none;
+    }
+    
+    .escolha_personagens {
+        /* Inicia oculto */
+        display: none;
+        position: absolute;
+    }
+    
+    label > input {
+        /* HIDE RADIO */
+        visibility: hidden;
+        /* Makes input not-clickable */
+        position: absolute;
+        /* Remove input from document flow */
+    }
+    
+    label > input[type="radio"]:checked + img {
+        /* IMAGE STYLES */
+        cursor: pointer;
+        border: 2px solid transparent;
+    }
+    
+    label > input[type="radio"]:checked + img {
+        /* (RADIO CHECKED) IMAGE STYLES */
+        border: 2px solid #f00;
+    }
