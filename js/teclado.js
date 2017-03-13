@@ -10,6 +10,8 @@ var TECLA_S = 83;
 var TECLA_D = 68;
 var TECLA_E = 69;
 var ENTER = 13;
+var TECLA_V = 86;
+var TECLA_T = 84;
 function Teclado(elemento) {
    this.elemento = elemento;
 

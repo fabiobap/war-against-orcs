@@ -2,7 +2,9 @@
 War against orcs - feito por Fabio Baptista
 github : https://github.com/fabiobap/
 live demo: http://fabiobaptista.com.br/jogo.html
-site:http://fabiobaptista.com.br/  
+site:http://fabiobaptista.com.br/ 
+
+versão 2.1
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -43,10 +45,14 @@ site:http://fabiobaptista.com.br/
     <script src="js/tiro_rider.js"></script>
     <script src="js/spritesheet.js"></script>
     <script src="js/morto.js"></script>
+    <script src="js/sparks.js"></script>
     <script src="js/sangue.js"></script>
     <script src="js/painel.js"></script>
     <script src="js/item_vida.js"></script>
     <script src="js/item_boots.js"></script>
+    <script src="js/item_ebar.js"></script>
+    <script src="js/item_shield.js"></script>
+    <script src="js/item_shield_status.js"></script>
     <!-- endbuild-->
     <script>
         window.top.document.onkeydown = function (evt) {
@@ -135,7 +141,7 @@ site:http://fabiobaptista.com.br/
         // Canvas e Context
         var canvas = document.getElementById('canvas_animacao');
         var context = canvas.getContext('2d');
-        var imagens, animacao, teclado, colisor, personagem, shaman, warlord, tazhadur, marauder, criadorOrcNormal, criadorShaman, criadorWarrior, criadorZerk, criadorWarlord, criadorRider, criadorMarauder, criadorTazhadur, criadorItemVida, criadorItemBoots;
+        var imagens, animacao, teclado, colisor, personagem, orcNormal, warrior, riderBaixo, riderEsquerda, zerk, shaman, warlord, tazhadur, marauder, criadorOrcNormal, criadorShaman, criadorWarrior, criadorZerk, criadorWarlord, criadorRider, criadorMarauder, criadorTazhadur, criadorItemVida, criadorItemBoots;
         var totalImagens = 0,
             carregadas = 0,
             pontos = 0;
@@ -150,6 +156,7 @@ site:http://fabiobaptista.com.br/
             tazhadurApareceu = false;
         var musicaFaseUmEDois, musicaFaseTres, musicaBoss;
         var somGameOver, somGameWin;
+        var ativaLoot = false;
         carregarImagens();
         carregarMusicas();
 
@@ -180,6 +187,7 @@ site:http://fabiobaptista.com.br/
                 tazhadur: 'tazhadur_spritesheet.png',
                 morto_female: 'female_corpo_spritesheet.png',
                 morto_male: 'male_corpo_spritesheet.png',
+                sparks: 'sparks_spritesheet.png',
                 orcNormalMorto: 'orc_normal_corpo_spritesheet.png',
                 zerkMorto: 'zerk_corpo_spritesheet.png',
                 marauderMorto: 'marauder_corpo_spritesheet.png',
@@ -189,6 +197,8 @@ site:http://fabiobaptista.com.br/
                 warriorMorto: 'warrior_corpo_spritesheet.png',
                 hp: 'Heart_Pillow.png',
                 boh: 'Boots_of_Haste.png',
+                ebar: 'Energy_Bar.png',
+                shield: 'Runic_Ice_Shield.png',
                 painel_marauder: 'painel_marauder.png',
                 painel_shaman: 'painel_shaman.png',
                 painel_warlord: 'painel_warlord.png',
@@ -268,13 +278,13 @@ site:http://fabiobaptista.com.br/
             fundoFaseQuatro = new Fundo(context, imagens.fundoFaseQuatro);
 
             if (personagemTipo == 1) {
-                personagem = new Personagem(context, teclado, imagens.windalle, imagens.morto_female, personagemTipo);
+                personagem = new Personagem(context, teclado, imagens.windalle, imagens.morto_female, personagemTipo, imagens.sparks);
             } else if (personagemTipo == 2) {
-                personagem = new Personagem(context, teclado, imagens.paladino, imagens.morto_female, personagemTipo);
+                personagem = new Personagem(context, teclado, imagens.paladino, imagens.morto_female, personagemTipo, imagens.sparks);
             } else if (personagemTipo == 3) {
-                personagem = new Personagem(context, teclado, imagens.mage, imagens.morto_male, personagemTipo);
+                personagem = new Personagem(context, teclado, imagens.mage, imagens.morto_male, personagemTipo, imagens.sparks);
             }
-            painel = new Painel(context, personagem, imagens.hp);
+            painel = new Painel(context, personagem, imagens.hp, imagens.shield);
 
             if (faseUm === true) {
 
@@ -379,10 +389,18 @@ site:http://fabiobaptista.com.br/
             personagem.vidasExtras = 3;
 
             personagem.acabaramVidas = function () {
-                animacao.desligar();
-                gameOver();
-            }
-
+                    animacao.desligar();
+                    gameOver();
+                }
+                //Cheat Da vida
+            teclado.disparou(TECLA_V, function () {
+                if (personagem.vidasExtras < 3)
+                    personagem.vidasExtras = personagem.vidasExtras + 1;
+            });
+            //Cheat velocidade
+            teclado.disparou(TECLA_T, function () {
+                personagem.velocidade = 6;
+            });
             colisor.aoColidir = function (o1, o2) {
                 //pontos = painel.pontuacao;
                 // Tiro com OrcNormal
@@ -392,6 +410,10 @@ site:http://fabiobaptista.com.br/
                     (o1 instanceof OrcNormal && o2 instanceof Tiro)) {
                     // Use o incremento que desejar
                     painel.pontuacao += 5;
+                    if (orcNormal.vidasExtras < 1) {
+                        ativaLoot = true;
+                        loot(orcNormal);
+                    }
                 }
 
                 if ((o1 instanceof Tiro && o2 instanceof Warrior) ||
@@ -400,6 +422,10 @@ site:http://fabiobaptista.com.br/
                     (o1 instanceof Warrior && o2 instanceof Tiro)) {
                     // Use o incremento que desejar
                     painel.pontuacao += 5;
+                    if (warrior.vidasExtras < 1) {
+                        ativaLoot = true;
+                        loot(warrior);
+                    }
                 }
                 if ((o1 instanceof Tiro && o2 instanceof Shaman) ||
                     (o1 instanceof Shaman && o2 instanceof Tiro) ||
@@ -435,6 +461,10 @@ site:http://fabiobaptista.com.br/
                     (o1 instanceof Zerk && o2 instanceof TiroEspecial) ||
                     (o1 instanceof TiroEspecial && o2 instanceof Zerk)) {
                     painel.pontuacao += 10; // Use o incremento que desejar
+                    if (zerk.vidasExtras < 1) {
+                        ativaLoot = true;
+                        loot(zerk);
+                    }
                 }
 
                 if ((o1 instanceof Tiro && o2 instanceof Rider) ||
@@ -442,6 +472,10 @@ site:http://fabiobaptista.com.br/
                     (o1 instanceof Rider && o2 instanceof TiroEspecial) ||
                     (o1 instanceof TiroEspecial && o2 instanceof Rider)) {
                     painel.pontuacao += 10;
+                    if (riderBaixo.vidasExtras < 1) {
+                        ativaLoot = true;
+                        loot(riderBaixo);
+                    }
                 }
                 if ((o1 instanceof Tiro && o2 instanceof Marauder) ||
                     (o1 instanceof Marauder && o2 instanceof Tiro) ||
@@ -459,7 +493,11 @@ site:http://fabiobaptista.com.br/
                 if ((o1 instanceof Tiro && o2 instanceof Tazhadur) ||
                     (o1 instanceof Tazhadur && o2 instanceof Tiro) ||
                     (o1 instanceof TiroEspecial && o2 instanceof Tazhadur) || (o1 instanceof Tazhadur && o2 instanceof TiroEspecial)) {
-                    painel.pontuacao += 80;
+                    painel.pontuacao += 90;
+                    if (tazhadur.vidasExtras == 30 || tazhadur.vidasExtras == 15 || tazhadur.vidasExtras == 3 ) {
+                        ativaLoot = true;
+                        loot(tazhadur);
+                    }
                     if (tazhadur.vidasExtras < 1) {
                         pontos = painel.pontuacao;
                         faseTres = false;
@@ -476,7 +514,7 @@ site:http://fabiobaptista.com.br/
                 ultimoMarauder: new Date().getTime(),
                 processar: function () {
                     var pontos = painel.pontuacao;
-                    if ((pontos >= 2500) && (marauderApareceu === false) && (faseTres === true)) {
+                    if ((pontos >= 2800) && (marauderApareceu === false) && (faseTres === true)) {
                         marauderApareceu = true;
                         novoMarauder();
                     }
@@ -536,7 +574,7 @@ site:http://fabiobaptista.com.br/
                 ultimoWarlord: new Date().getTime(),
                 processar: function () {
                     var pontos = painel.pontuacao;
-                    if ((pontos >= 800) && (warlordApareceu === false) &&
+                    if ((pontos >= 1000) && (warlordApareceu === false) &&
                         (faseDois === true)) {
                         warlordApareceu = true;
                         novoWarlord();
@@ -603,7 +641,7 @@ site:http://fabiobaptista.com.br/
                 processar: function () {
                     var agora = new Date().getTime();
                     var decorrido = agora - this.ultimoOrcNormal;
-                    if (decorrido > 900 && faseUm === true) {
+                    if (decorrido > 1800 && faseUm === true) {
                         novoOrcNormal();
                         this.ultimoOrcNormal = agora;
                     }
@@ -615,14 +653,14 @@ site:http://fabiobaptista.com.br/
         function novoOrcNormal() {
 
             var imgOrcNormal = imagens.orcNormal;
-            var orcNormal = new OrcNormal(context, imgOrcNormal, imagens.orcNormalMorto);
+            orcNormal = new OrcNormal(context, imgOrcNormal, imagens.orcNormalMorto);
             // Mínimo: 5; máximo: 20
             orcNormal.velocidade = 4;
             // Mínimo: 0;
             // máximo: largura do canvas - largura do orcNormal
             orcNormal.x = Math.floor(Math.random() * (canvas.width - imgOrcNormal.width + 420));
             // Descontar a altura
-            orcNormal.y = -imgOrcNormal.height;
+            orcNormal.y = -imgOrcNormal.height + 20;
             animacao.novoSprite(orcNormal);
             colisor.novoSprite(orcNormal);
         }
@@ -645,14 +683,14 @@ site:http://fabiobaptista.com.br/
         function novoWarrior() {
 
             var imgWarrior = imagens.warrior;
-            var warrior = new Warrior(context, imgWarrior, imagens.warriorMorto, imagens.sangue);
+            warrior = new Warrior(context, imgWarrior, imagens.warriorMorto, imagens.sangue);
             // Mínimo: 5; máximo: 20
             warrior.velocidade = 5;
             // Mínimo: 0;
             // máximo: largura do canvas - largura do orcNormal
             warrior.x = Math.floor(Math.random() * (canvas.width / 2 - imgWarrior.width + 300));
             // Descontar a altura
-            warrior.y = -imgWarrior.height;
+            warrior.y = -imgWarrior.height + 20;
             animacao.novoSprite(warrior);
             colisor.novoSprite(warrior);
         }
@@ -674,11 +712,9 @@ site:http://fabiobaptista.com.br/
         //Funcao criar inimigo
         function novoZerk() {
             var imgZerk = imagens.zerk;
-            var zerk = new Zerk(context, imgZerk, imagens.zerkMorto, imagens.sangue);
+            zerk = new Zerk(context, imgZerk, imagens.zerkMorto, imagens.sangue);
             // Mínimo: 500; máximo: 1000
             zerk.velocidade = 5;
-            //Math.floor(520 + Math.random() * (100 - 400 + 1));
-            // Mínimo: 0; máximo: largura do canvas - largura do zerk   
             zerk.x = personagem.x + 20;
             // Descontar a altura
             zerk.y = -imgZerk.height;
@@ -697,7 +733,7 @@ site:http://fabiobaptista.com.br/
                     var decorridoBaixo = agoraBaixo - this.ultimoRiderBaixo;
                     var decorridoEsquerda = agoraEsquerda - this.ultimoRiderEsquerda;
 
-                    if ((decorridoBaixo > 2600) && (faseTres === true)) {
+                    if ((decorridoBaixo > 2800) && (faseTres === true)) {
                         novoRiderBaixo();
                         this.ultimoRiderBaixo = agoraBaixo;
                     }
@@ -714,14 +750,11 @@ site:http://fabiobaptista.com.br/
 
             var imgRiderBaixo = imagens.riderBaixo;
             var tipoRider = 1;
-            var riderBaixo = new Rider(context, imgRiderBaixo, imagens.riderMorto, imagens.sangue, tipoRider);
-            // Mínimo: 500; máximo: 1000
+            riderBaixo = new Rider(context, imgRiderBaixo, imagens.riderMorto, imagens.sangue, tipoRider);
             riderBaixo.velocidadeY = 3;
-            //Math.floor(120 + Math.random() * (100 - 400 + 1));
-            // Mínimo: 0; máximo: largura do canvas - largura do zerk   
             riderBaixo.x = Math.floor(Math.random() * (canvas.width / 2 - imgRiderBaixo.width + 450));
             // Descontar a altura
-            riderBaixo.y = -imgRiderBaixo.height;
+            riderBaixo.y = -imgRiderBaixo.height + 20;
             animacao.novoSprite(riderBaixo);
             colisor.novoSprite(riderBaixo);
         }
@@ -730,11 +763,8 @@ site:http://fabiobaptista.com.br/
 
             var imgRiderEsquerda = imagens.riderEsquerda;
             var tipoRider = 2;
-            var riderEsquerda = new Rider(context, imgRiderEsquerda, imagens.riderMorto, imagens.sangue, tipoRider);
-            // Mínimo: 500; máximo: 1000
+            riderEsquerda = new Rider(context, imgRiderEsquerda, imagens.riderMorto, imagens.sangue, tipoRider);
             riderEsquerda.velocidadeX = -2;
-            //Math.floor(120 + Math.random() * (100 - 400 + 1));
-            // Mínimo: 0; máximo: largura do canvas - largura do zerk   
             riderEsquerda.y = personagem.y;
             // Descontar a altura
             riderEsquerda.x = canvas.width - imgRiderEsquerda.width + 250;
@@ -742,64 +772,43 @@ site:http://fabiobaptista.com.br/
             colisor.novoSprite(riderEsquerda);
         }
 
-        function criacaoItemVida() {
-            criadorItemVida = {
-                ultimoItemVida: new Date().getTime(),
-                processar: function () {
-                    var agora = new Date().getTime();
-                    var decorrido = agora - this.ultimoItemVida;
-                    if (decorrido > 13000) {
-                        novoItemVida();
-                        this.ultimoItemVida = agora;
-                    }
-                }
-            };
-            animacao.novoProcessamento(criadorItemVida);
-        }
-
-        function novoItemVida() {
-
+        function novoHp(criatura) {
             var imgItemVida = imagens.hp;
             var itemVida = new ItemVida(context, imgItemVida);
-            // Mínimo: 5; máximo: 20
-            itemVida.velocidade = 4;
-            // Mínimo: 0;
-            // máximo: largura do canvas - largura do orcNormal
-            itemVida.x = Math.floor(Math.random() * (canvas.width - imgItemVida.width));
-            // Descontar a altura
-            itemVida.y = -imgItemVida.height;
+            itemVida.x = criatura.ultimoX + 5;
+            itemVida.y = criatura.ultimoY + 5;
+            itemVida.velocidade = 1.5;
             animacao.novoSprite(itemVida);
             colisor.novoSprite(itemVida);
         }
 
-        function criacaoItemBoots() {
-            criadorItemBoots = {
-                ultimoItemBoots: new Date().getTime(),
-                processar: function () {
-                    var agora = new Date().getTime();
-                    var decorrido = agora - this.ultimoItemBoots;
-                    if (decorrido > 18000) {
-                        novoItemBoots();
-                        this.ultimoItemBoots = agora;
-                    }
-                }
-            };
-            animacao.novoProcessamento(criadorItemBoots);
-        }
-
-        function novoItemBoots() {
-
+        function novoBoots(criatura) {
             var imgItemBoots = imagens.boh;
             var itemBoots = new ItemBoots(context, imgItemBoots);
-            // Mínimo: 5; máximo: 20
-            itemBoots.velocidade = 4;
-            // Mínimo: 0;
-            // máximo: largura do canvas - largura do orcNormal
-            itemBoots.x = Math.floor(Math.random() * (canvas.width - imgItemBoots.width));
-            // Descontar a altura
-            itemBoots.y = -imgItemBoots.height;
+            itemBoots.x = criatura.ultimoX + 5;
+            itemBoots.y = criatura.ultimoY + 5;
+            itemBoots.velocidade = 1.5;
             animacao.novoSprite(itemBoots);
             colisor.novoSprite(itemBoots);
+        }
+
+        function novoEnergyBar(criatura) {
+            var imgEBar = imagens.ebar;
+            var itemEnergyBar = new ItemEnergyBar(context, imgEBar);
+            itemEnergyBar.x = criatura.ultimoX + 5;
+            itemEnergyBar.y = criatura.ultimoY + 5;
+            itemEnergyBar.velocidade = 1.5;
+            animacao.novoSprite(itemEnergyBar);
+            colisor.novoSprite(itemEnergyBar);
+        }        
+        function novoShield(criatura) {
+            var imgShield = imagens.shield;
+            var itemShield = new ItemShield(context, imgShield);
+            itemShield.x = criatura.ultimoX + 5;
+            itemShield.y = criatura.ultimoY + 5;
+            itemShield.velocidade = 1.5;
+            animacao.novoSprite(itemShield);
+            colisor.novoSprite(itemShield);
         }
 
         function ativarTiro(ativar) {
@@ -813,6 +822,81 @@ site:http://fabiobaptista.com.br/
                 });
             } else {
                 teclado.disparou(ESPACO, null);
+            }
+        }
+
+        function loot(criatura) {
+            if (ativaLoot === true) {
+                if (criatura.nome == "orcNormal" || criatura.nome == "warrior") {
+                    var chance = Math.floor((Math.random() * 35) + 1);
+                    console.log(chance);
+                    if (chance >= 3 && chance <= 6) {
+                        novoHp(criatura);
+                        ativaLoot = false;
+                    }
+                    if (chance >= 10 && chance <= 11) {
+                        novoBoots(criatura);
+                        ativaLoot = false;
+                    }
+                    if (chance >= 14 && chance <= 17) {
+                        novoEnergyBar(criatura);
+                        ativaLoot = false;
+                    }                    
+                    if (chance >= 34) {
+                        novoShield(criatura);
+                        ativaLoot = false;
+                    }
+                } else if (criatura.nome == "zerk") {
+                    var chance = Math.floor((Math.random() * 12) + 1);
+                    console.log(chance);
+                    if (chance >= 4 && chance <= 5) {
+                        novoHp(criatura)
+                        ativaLoot = false;
+                    }
+                    if (chance >= 1 && chance <= 3) {
+                        novoBoots(criatura);
+                        ativaLoot = false;
+                    }
+                    if (chance > 11) {
+                        novoEnergyBar(criatura);
+                        ativaLoot = false;
+                    }
+                } else if (criatura.nome == "tazhadur") {
+                    var chance = Math.floor((Math.random() * 12) + 1);
+                    console.log(chance);
+                    if (chance >= 3 && chance <= 7) {
+                        novoHp(criatura)
+                        ativaLoot = false;
+                    }
+                    if (chance >= 1 && chance <= 2) {
+                        novoBoots(criatura);
+                        ativaLoot = false;
+                    }
+                    if (chance > 11) {
+                        novoEnergyBar(criatura);
+                        ativaLoot = false;
+                    }
+                } else if (criatura.nome == "rider") {
+
+                    var chance = Math.floor((Math.random() * 40) + 1);
+                    console.log(chance);
+                    if (chance >= 3 && chance <= 8) {
+                        novoHp(criatura)
+                        ativaLoot = false;
+                    }
+                    if (chance >= 15 && chance <= 17) {
+                        novoBoots(criatura);
+                        ativaLoot = false;
+                    }
+                    if (chance >= 30 && chance <= 33) {
+                        novoEnergyBar(criatura);
+                        ativaLoot = false;
+                    }
+                    if (chance >= 38) {
+                        novoShield(criatura);
+                        ativaLoot = false;
+                    }
+                }
             }
         }
 
@@ -836,8 +920,6 @@ site:http://fabiobaptista.com.br/
                     musicaBoss.pause();
                 }
             } else {
-                criadorItemVida.ultimoItemVida = new Date().getTime();
-                criacaoItemBoots.ultimoItemBoots = new Date().getTime();
                 if (faseUm === true) {
                     criadorOrcNormal.ultimoOrcNormal = new Date().getTime();
                     criadorShaman.ultimoShaman = new Date().getTime();
@@ -952,7 +1034,7 @@ site:http://fabiobaptista.com.br/
             // Volta o link "Jogar"
             excluirFaseDois();
 
-            removerOrcsNormais();
+            removerWarrior();
             removerZerks();
             removerWarlord();
 
@@ -998,10 +1080,6 @@ site:http://fabiobaptista.com.br/
             shamanApareceu = false;
             criacaoOrcNormal();
             criacaoShaman();
-            criacaoItemVida();
-            criacaoItemBoots();
-            criadorItemVida.ultimoItemVida = new Date().getTime();
-            criadorItemBoots.ultimoItemBoots = new Date().getTime();
             criadorOrcNormal.ultimoOrcNormal = new Date().getTime();
             criadorShaman.ultimoShaman = new Date().getTime();
             painel.pontuacao = 0;
@@ -1017,10 +1095,6 @@ site:http://fabiobaptista.com.br/
         function iniciarFaseDois() {
             musicaFaseUmEDois.play();
             warlordApareceu = false;
-            criacaoItemVida();
-            criacaoItemBoots();
-            criadorItemVida.ultimoItemVida = new Date().getTime();
-            criadorItemBoots.ultimoItemBoots = new Date().getTime();
             criacaoWarrior();
             criacaoZerk();
             criacaoWarlord();
@@ -1041,10 +1115,6 @@ site:http://fabiobaptista.com.br/
             musicaFaseTres.currentTime = 0.0;
             musicaFaseTres.play();
             marauderApareceu = false;
-            criacaoItemVida();
-            criacaoItemBoots();
-            criadorItemVida.ultimoItemVida = new Date().getTime();
-            criadorItemBoots.ultimoItemBoots = new Date().getTime();
             criacaoRider();
             criacaoMarauder();
             criadorMarauder.ultimoBoss = new Date().getTime();
@@ -1084,6 +1154,7 @@ site:http://fabiobaptista.com.br/
             musicaFaseTres.currentTime = 0.0;
             musicaBoss.pause();
             musicaBoss.currentTime = 0.0;
+            animacao.desligar();
             removerOrcsNormais();
             removerWarrior();
             removerZerks();
@@ -1099,6 +1170,8 @@ site:http://fabiobaptista.com.br/
             removerTiroTazhadur();
             removerItemBoots();
             removerItemVida();
+            removerItemEnergyBar();
+            removerItemShield();
             // Tiro
 
             faseQuatro = false;
@@ -1165,6 +1238,8 @@ site:http://fabiobaptista.com.br/
             removerTiroTazhadur();
             removerItemBoots();
             removerItemVida();
+            removerItemEnergyBar();
+            removerItemShield();
 
             excluirFaseQuatro();
 
@@ -1219,7 +1294,7 @@ site:http://fabiobaptista.com.br/
             musicaFaseUmEDois = new Audio();
             musicaFaseUmEDois.src = 'snd/uruk_hai_todas_fases.mp3';
             musicaFaseUmEDois.load();
-            musicaFaseUmEDois.volume = 0.3;
+            musicaFaseUmEDois.volume = 0.2;
             musicaFaseUmEDois.loop = true;
 
             musicaFaseTres = new Audio();
@@ -1231,7 +1306,7 @@ site:http://fabiobaptista.com.br/
             musicaBoss = new Audio();
             musicaBoss.src = 'snd/godofwar_boss.mp3';
             musicaBoss.load();
-            musicaBoss.volume = 0.4;
+            musicaBoss.volume = 0.3;
             musicaBoss.loop = true;
 
         }
@@ -1351,6 +1426,20 @@ site:http://fabiobaptista.com.br/
         function removerItemBoots() {
             for (var i in animacao.sprites) {
                 if (animacao.sprites[i] instanceof ItemBoots)
+                    animacao.excluirSprite(animacao.sprites[i]);
+                colisor.excluirSprite(colisor.sprites[i]);
+            }
+        }        
+        function removerItemEnergyBar() {
+            for (var i in animacao.sprites) {
+                if (animacao.sprites[i] instanceof ItemEnergyBar)
+                    animacao.excluirSprite(animacao.sprites[i]);
+                colisor.excluirSprite(colisor.sprites[i]);
+            }
+        }        
+        function removerItemShield() {
+            for (var i in animacao.sprites) {
+                if (animacao.sprites[i] instanceof ItemShield)
                     animacao.excluirSprite(animacao.sprites[i]);
                 colisor.excluirSprite(colisor.sprites[i]);
             }

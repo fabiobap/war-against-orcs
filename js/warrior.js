@@ -14,6 +14,8 @@ function Warrior(context, imagem, imgMorto, imgSangue) {
     this.imgMorto = imgMorto;
     this.vidasExtras = 2;
     this.imgSangue = imgSangue;
+    this.ultimoX = 0;
+    this.ultimoY = 0;
 
     // Criando a spritesheet a partir da imagem recebida
     this.sheet = new Spritesheet(context, imagem, 1, 2);
@@ -21,6 +23,7 @@ function Warrior(context, imagem, imgMorto, imgSangue) {
 
     // Estado inicial
     this.andando = true;
+    this.nome = "warrior";
 }
 
 Warrior.prototype = {
@@ -86,6 +89,8 @@ Warrior.prototype = {
             if (warrior.vidasExtras < 1) {
                 SOM_MORTE.currentTime = 0.0;
                 SOM_MORTE.play();
+                this.ultimoX = this.x;
+                this.ultimoY = this.y;
                 this.animacao.excluirSprite(this);
                 this.colisor.excluirSprite(this);
                 this.animacao.excluirSprite(outro);
@@ -105,6 +110,8 @@ Warrior.prototype = {
             if (warrior.vidasExtras < 1) {
                 SOM_MORTE.currentTime = 0.0;
                 SOM_MORTE.play();
+                this.ultimoX = this.x;
+                this.ultimoY = this.y;
                 this.animacao.excluirSprite(this);
                 this.colisor.excluirSprite(this);
                 this.animacao.excluirSprite(outro);

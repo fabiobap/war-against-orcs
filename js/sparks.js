@@ -1,11 +1,11 @@
-function Morto(context, imagem, x, y) {
+function Sparks(context, imagem, x, y) {
     this.context = context;
     this.imagem = imagem;
-    this.spritesheet = new Spritesheet(context, imagem, 1, 8);
-    this.spritesheet.intervalo = 80;
+    this.spritesheet = new Spritesheet(context, imagem, 1, 6);
+    this.spritesheet.intervalo = 70;
     this.x = x;
     this.y = y;
-    this.velocidadeY = 2;
+    this.velocidadeY = 0;
 
     var corpo = this;
     this.fimDaExplosao = null;
@@ -14,7 +14,7 @@ function Morto(context, imagem, x, y) {
         if (corpo.fimDaExplosao) corpo.fimDaExplosao();
     }
 }
-Morto.prototype = {
+Sparks.prototype = {
     atualizar: function () {
 this.y += this.velocidadeY;
 

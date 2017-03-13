@@ -1,7 +1,7 @@
 //som de morte de orc
 var SOM_MORTE = new Audio();
 SOM_MORTE.src = 'snd/orc_geral_morrendo.mp3';
-SOM_MORTE.volume = 0.5;
+SOM_MORTE.volume = 0.4;
 SOM_MORTE.type = 'type="audio/mp3';
 SOM_MORTE.load();
 
@@ -13,6 +13,8 @@ function OrcNormal(context, imagem, imgMorto) {
     this.velocidade = 0;
     this.imgMorto = imgMorto;
     this.vidasExtras = 1;
+    this.ultimoX = 0;
+    this.ultimoY = 0;
 
     // Criando a spritesheet a partir da imagem recebida
     this.sheet = new Spritesheet(context, imagem, 1, 8);
@@ -20,6 +22,7 @@ function OrcNormal(context, imagem, imgMorto) {
 
     // Estado inicial
     this.andando = true;
+    this.nome = "orcNormal";
 }
 
 OrcNormal.prototype = {
@@ -80,6 +83,8 @@ OrcNormal.prototype = {
             if (orcNormal.vidasExtras < 1) {
                 SOM_MORTE.currentTime = 0.0;
                 SOM_MORTE.play();
+                this.ultimoX = this.x;
+                this.ultimoY = this.y;
                 this.animacao.excluirSprite(this);
                 this.colisor.excluirSprite(this);
                 this.animacao.excluirSprite(outro);

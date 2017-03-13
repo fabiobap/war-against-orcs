@@ -18,3 +18,12 @@
 <li>Inimigos também!</li>
 <li>Melhoria geral no código</li>
 </ol>
+
+<p>Versão 2.1!</p>
+<p>O Que tem de novo?</p>
+<ol>
+<li>Sistema de loot e não mais itens descendo na tela aleatoriamente</li>
+<li>Novos itens</li>
+<li>Novas funcionalidades</li>
+<li>Algumas correções</li>
+</ol>

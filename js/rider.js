@@ -21,6 +21,8 @@ function Rider(context, imagem, imgMorto, imgSangue, tipoRider) {
     this.y = 0;
     this.velocidadeX = 0;
     this.velocidadeY = 0;
+    this.ultimoX = 0;
+    this.ultimoY = 0;
 
     // Criando a spritesheet a partir da imagem recebida
     this.sheet = new Spritesheet(context, imagem, 1, 3);
@@ -35,6 +37,7 @@ function Rider(context, imagem, imgMorto, imgSangue, tipoRider) {
     var rider = this;
     SOM_RIDER_APARECENDO.currentTime = 0.0;
     SOM_RIDER_APARECENDO.play();
+    this.nome = "rider";
 }
 
 Rider.prototype = {
@@ -133,6 +136,8 @@ Rider.prototype = {
             if (rider.vidasExtras < 1) {
                 SOM_MORTE_RIDER.currentTime = 0.0;
                 SOM_MORTE_RIDER.play();
+                this.ultimoX = this.x;
+                this.ultimoY = this.y;
                 this.alive = false;
                 this.animacao.excluirSprite(this);
                 this.colisor.excluirSprite(this);
@@ -154,6 +159,8 @@ Rider.prototype = {
             if (rider.vidasExtras < 1) {
                 SOM_MORTE_RIDER.currentTime = 0.0;
                 SOM_MORTE_RIDER.play();
+                this.ultimoX = this.x;
+                this.ultimoY = this.y;
                 this.alive = false;
                 this.animacao.excluirSprite(this);
                 this.colisor.excluirSprite(this);

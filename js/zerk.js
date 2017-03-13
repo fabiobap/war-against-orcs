@@ -21,7 +21,8 @@ function Zerk(context, imagem, imgMorto, imgSangue) {
     this.y = 0;
     this.velocidade = 0;
     this.vidasExtras = 3;
-
+    this.ultimoX = 0;
+    this.ultimoY = 0;
     // Criando a spritesheet a partir da imagem recebida
     this.sheet = new Spritesheet(context, imagem, 1, 8);
     this.sheet.intervalo = 60;
@@ -30,6 +31,7 @@ function Zerk(context, imagem, imgMorto, imgSangue) {
     this.andando = true;
     SOM_ZERK_APARECENDO.currentTime = 0.0;
     SOM_ZERK_APARECENDO.play();
+    this.nome = "zerk";
 }
 
 Zerk.prototype = {
@@ -91,6 +93,8 @@ Zerk.prototype = {
             if (zerk.vidasExtras < 1) {
                 SOM_MORTE_2.currentTime = 0.0;
                 SOM_MORTE_2.play();
+                this.ultimoX = this.x;
+                this.ultimoY = this.y;
                 this.animacao.excluirSprite(this);
                 this.colisor.excluirSprite(this);
                 this.animacao.excluirSprite(outro);
@@ -113,6 +117,8 @@ Zerk.prototype = {
             if (zerk.vidasExtras < 1) {
                 SOM_MORTE_2.currentTime = 0.0;
                 SOM_MORTE_2.play();
+                this.ultimoX = this.x;
+                this.ultimoY = this.y;
                 this.animacao.excluirSprite(this);
                 this.colisor.excluirSprite(this);
                 this.animacao.excluirSprite(outro);

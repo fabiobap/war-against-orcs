@@ -30,7 +30,7 @@ function Shaman(context, imagem, imgMorto, imgSangue) {
     this.alive = false;
     this.andando = true;
     this.IsBoss = true;
-    this.vidasExtras = 10;
+    this.vidasExtras = 15;
     var shaman = this;
     SOM_SHAMAN_APARECENDO.currentTime = 0.0;
     SOM_SHAMAN_APARECENDO.play();

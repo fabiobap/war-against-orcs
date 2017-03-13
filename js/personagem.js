@@ -20,12 +20,25 @@ SOM_GRITO.src = 'snd/grunt.mp3';
 SOM_GRITO.volume = 0.4;
 SOM_GRITO.type = 'type="audio/mp3';
 SOM_GRITO.load();
+//som de quando personagem morre
+var SOM_ITEM_FAIL = new Audio();
+SOM_ITEM_FAIL.src = 'snd/fail_item.mp3';
+SOM_ITEM_FAIL.volume = 0.9;
+SOM_ITEM_FAIL.type = 'type="audio/mp3';
+SOM_ITEM_FAIL.load();
+//som de quando personagem morre
+var SOM_SHIELD_SPARK = new Audio();
+SOM_SHIELD_SPARK.src = 'snd/shield_cling.mp3';
+SOM_SHIELD_SPARK.volume = 0.3;
+SOM_SHIELD_SPARK.type = 'type="audio/mp3';
+SOM_SHIELD_SPARK.load();
 
-function Personagem(context, teclado, imagem, imgMorto, personagemTipo) {
+function Personagem(context, teclado, imagem, imgMorto, personagemTipo, imgSparks) {
     this.context = context;
     this.teclado = teclado;
     this.imagem = imagem;
     this.imgMorto = imgMorto;
+    this.imgSparks = imgSparks;
     this.personagemTipo = personagemTipo;
     this.x = 0;
     this.y = 0;
@@ -43,9 +56,15 @@ function Personagem(context, teclado, imagem, imgMorto, personagemTipo) {
     this.andando = false;
     this.direcao = PERSONAGEM_CIMA;
     this.podeApanhar = true;
+    this.tiroRapido = false;
+    this.shielded = false;
+    this.shieldedPoints = 0;
 
     this.ultimoTempo = new Date().getTime();
-    this.ultimoTempoEspecial = new Date().getTime();
+    this.ultimoTempoShield = new Date().getTime();
+    this.ultimoTempoTiro = new Date().getTime();
+    this.ultimoTempoTiroEspecial = new Date().getTime();
+    console.log(this.shielded);
 }
 Personagem.prototype = {
     atualizar: function () {
@@ -120,74 +139,79 @@ Personagem.prototype = {
         this.sheet.desenhar(this.x, this.y);
     },
     atirar: function () {
-        if (this.personagemTipo == 1) {
+        var agora = new Date().getTime();
+        var decorrido = agora - this.ultimoTempoTiro;
+        if (decorrido > 250 || this.tiroRapido === true) {
+            if (this.personagemTipo == 1) {
 
-            var tipoMunicao = 'faca';
+                var tipoMunicao = 'faca';
 
-            var imgcima = new Image();
-            imgcima.src = 'img/faca_1.png';
-            var imgbaixo = new Image();
-            imgbaixo.src = 'img/faca_2.png';
-            var imgesquerda = new Image();
-            imgesquerda.src = 'img/faca_4.png';
-            var imgdireita = new Image();
-            imgdireita.src = 'img/faca_3.png';
+                var imgcima = new Image();
+                imgcima.src = 'img/faca_1.png';
+                var imgbaixo = new Image();
+                imgbaixo.src = 'img/faca_2.png';
+                var imgesquerda = new Image();
+                imgesquerda.src = 'img/faca_4.png';
+                var imgdireita = new Image();
+                imgdireita.src = 'img/faca_3.png';
 
-        } else if (this.personagemTipo == 2) {
+            } else if (this.personagemTipo == 2) {
 
-            var tipoMunicao = 'arrow';
+                var tipoMunicao = 'arrow';
 
-            var imgcima = new Image();
-            imgcima.src = 'img/arrow_1.png';
-            var imgbaixo = new Image();
-            imgbaixo.src = 'img/arrow_2.png';
-            var imgesquerda = new Image();
-            imgesquerda.src = 'img/arrow_4.png';
-            var imgdireita = new Image();
-            imgdireita.src = 'img/arrow_3.png';
-        } else if (this.personagemTipo == 3) {
+                var imgcima = new Image();
+                imgcima.src = 'img/arrow_1.png';
+                var imgbaixo = new Image();
+                imgbaixo.src = 'img/arrow_2.png';
+                var imgesquerda = new Image();
+                imgesquerda.src = 'img/arrow_4.png';
+                var imgdireita = new Image();
+                imgdireita.src = 'img/arrow_3.png';
+            } else if (this.personagemTipo == 3) {
 
-            var tipoMunicao = 'fireball';
+                var tipoMunicao = 'fireball';
 
-            var imgcima = new Image();
-            imgcima.src = 'img/fireball_mage_cima.png';
-            var imgbaixo = new Image();
-            imgbaixo.src = 'img/fireball_mage_baixo.png';
-            var imgesquerda = new Image();
-            imgesquerda.src = 'img/fireball_mage_esquerda.png';
-            var imgdireita = new Image();
-            imgdireita.src = 'img/fireball_mage_direita.png';
+                var imgcima = new Image();
+                imgcima.src = 'img/fireball_mage_cima.png';
+                var imgbaixo = new Image();
+                imgbaixo.src = 'img/fireball_mage_baixo.png';
+                var imgesquerda = new Image();
+                imgesquerda.src = 'img/fireball_mage_esquerda.png';
+                var imgdireita = new Image();
+                imgdireita.src = 'img/fireball_mage_direita.png';
+            }
+
+            if (this.direcao == PERSONAGEM_CIMA) {
+                var tiro = new Tiro(this.context, this, imgcima, tipoMunicao);
+                tiro.velocidadeY = -10;
+                this.animacao.novoSprite(tiro);
+                this.colisor.novoSprite(tiro);
+            }
+            if (this.direcao == PERSONAGEM_BAIXO) {
+                var tiro = new Tiro(this.context, this, imgbaixo, tipoMunicao);
+                tiro.velocidadeY = 10;
+                this.animacao.novoSprite(tiro);
+                this.colisor.novoSprite(tiro);
+            }
+            if (this.direcao == PERSONAGEM_ESQUERDA) {
+                var tiro = new Tiro(this.context, this, imgesquerda, tipoMunicao);
+                tiro.velocidadeX = -10;
+                this.animacao.novoSprite(tiro);
+                this.colisor.novoSprite(tiro);
+            }
+            if (this.direcao == PERSONAGEM_DIREITA) {
+                var tiro = new Tiro(this.context, this, imgdireita, tipoMunicao);
+                tiro.velocidadeX = 10;
+                this.animacao.novoSprite(tiro);
+                this.colisor.novoSprite(tiro);
+            }
+            this.ultimoTempoTiro = agora;
+
         }
-
-        if (this.direcao == PERSONAGEM_CIMA) {
-            var tiro = new Tiro(this.context, this, imgcima, tipoMunicao);
-            tiro.velocidadeY = -10;
-            this.animacao.novoSprite(tiro);
-            this.colisor.novoSprite(tiro);
-        }
-        if (this.direcao == PERSONAGEM_BAIXO) {
-            var tiro = new Tiro(this.context, this, imgbaixo, tipoMunicao);
-            tiro.velocidadeY = 10;
-            this.animacao.novoSprite(tiro);
-            this.colisor.novoSprite(tiro);
-        }
-        if (this.direcao == PERSONAGEM_ESQUERDA) {
-            var tiro = new Tiro(this.context, this, imgesquerda, tipoMunicao);
-            tiro.velocidadeX = -10;
-            this.animacao.novoSprite(tiro);
-            this.colisor.novoSprite(tiro);
-        }
-        if (this.direcao == PERSONAGEM_DIREITA) {
-            var tiro = new Tiro(this.context, this, imgdireita, tipoMunicao);
-            tiro.velocidadeX = 10;
-            this.animacao.novoSprite(tiro);
-            this.colisor.novoSprite(tiro);
-        }
-
     },
     atirarEspecial: function () {
         var agora = new Date().getTime();
-        var decorrido = agora - this.ultimoTempoEspecial;
+        var decorrido = agora - this.ultimoTempoTiroEspecial;
         if (decorrido > 3000) {
             if (this.personagemTipo == 1) {
                 var tipoMunicao = 'espada';
@@ -246,7 +270,7 @@ Personagem.prototype = {
                 this.animacao.novoSprite(tiro);
                 this.colisor.novoSprite(tiro);
             }
-            this.ultimoTempoEspecial = agora;
+            this.ultimoTempoTiroEspecial = agora;
         }
 
     },
@@ -573,14 +597,56 @@ Personagem.prototype = {
     },
     colidiuCom: function (outro) {
         // Se colidiu com um Zerk...
+        var agoraShield = new Date().getTime();
         var agora = new Date().getTime();
+        var decorridoShield = agoraShield - this.ultimoTempoShield;
         var decorrido = agora - this.ultimoTempo;
-        if ((this.podeApanhar === true) && (decorrido >= 3000)) {
+        this.checaShielded();
+        if ((this.shielded === true) && (this.podeApanhar === true) && (decorridoShield >= 1200)) {
+            if (outro instanceof Zerk || outro instanceof OrcNormal || outro instanceof Warrior || outro instanceof Warlord || outro instanceof Shaman || outro instanceof Rider || outro instanceof Marauder || outro instanceof Tazhadur) {
+                
+                SOM_SHIELD_SPARK.currentTime = 0.0;
+                SOM_SHIELD_SPARK.play();
+
+                var exp1 = new Sparks(this.context, this.imgSparks, this.x, this.y);
+                this.animacao.novoSprite(exp1);
+
+                var personagem = this;
+                personagem.podeApanhar = false;
+                exp1.fimDaExplosao = function () {
+                    personagem.shieldedPoints--;
+                    personagem.contadorApanhador();
+                }
+            }
+            if (outro instanceof TiroMarauder || outro instanceof TiroRider || outro instanceof TiroWarlord || outro instanceof TiroTazhadur || outro instanceof TiroShaman) {
+                
+                SOM_SHIELD_SPARK.currentTime = 0.0;
+                SOM_SHIELD_SPARK.play();
+                this.animacao.excluirSprite(outro);
+                this.colisor.excluirSprite(outro);
+
+
+                var exp1 = new Sparks(this.context, this.imgSparks, this.x, this.y);
+                this.animacao.novoSprite(exp1);
+
+                var personagem = this;
+                personagem.podeApanhar = false;
+                exp1.fimDaExplosao = function () {
+                    personagem.shieldedPoints--;
+                    personagem.contadorApanhador();
+                }
+            }
+            if (outro instanceof ItemBoots || outro instanceof ItemShield || outro instanceof ItemVida || outro instanceof ItemEnergyBar) {
+                SOM_ITEM_FAIL.currentTime = 0.0;
+                SOM_ITEM_FAIL.play();
+            }
+        } else if ((this.podeApanhar === true) && (decorrido >= 2000) && (this.shielded === false)) {
             if (outro instanceof Zerk || outro instanceof OrcNormal || outro instanceof Warrior || outro instanceof Warlord || outro instanceof Shaman || outro instanceof Rider || outro instanceof Marauder || outro instanceof Tazhadur) {
                 SOM_COLISAO_CORTE.currentTime = 0.0;
                 SOM_COLISAO_CORTE.play();
                 SOM_GRITO.currentTime = 0.0;
                 SOM_GRITO.play();
+                this.tiroRapido = false;
                 this.podeApanhar = false;
                 this.animacao.excluirSprite(this);
                 this.colisor.excluirSprite(this);
@@ -601,11 +667,13 @@ Personagem.prototype = {
                         personagem.posicionar();
                     }
                 }
-            } else if (outro instanceof TiroMarauder || outro instanceof TiroRider || outro instanceof TiroWarlord || outro instanceof TiroTazhadur || outro instanceof TiroShaman) {
+            }
+            if (outro instanceof TiroMarauder || outro instanceof TiroRider || outro instanceof TiroWarlord || outro instanceof TiroTazhadur || outro instanceof TiroShaman) {
                 SOM_COLISAO_CORTE.currentTime = 0.0;
                 SOM_COLISAO_CORTE.play();
                 SOM_GRITO.currentTime = 0.0;
                 SOM_GRITO.play();
+                this.tiroRapido = false;
                 this.podeApanhar = false;
                 this.animacao.excluirSprite(outro);
                 this.animacao.excluirSprite(this);
@@ -629,70 +697,97 @@ Personagem.prototype = {
                     }
                 }
             }
-        }
-        if (outro instanceof ItemVida) {
-            var personagem = this;
-            if (this.vidasExtras < 3) {
-                SOM_ITEM.currentTime = 0.0;
-                SOM_ITEM.play();
-                this.podeApanhar = true;
-                this.animacao.excluirSprite(outro);
-                this.colisor.excluirSprite(outro);
-                context.save();
-                context.fillStyle = 'green';
-                context.strokeStyle = 'white';
-                context.font = '30px sans-serif';
-                context.fillText("+1 HP", personagem.x + 10, personagem.y - 5);
-                context.strokeText("+1 HP", personagem.x + 10, personagem.y - 5);
-                context.restore();
-                this.vidasExtras++;
+            if (outro instanceof ItemVida) {
+                var personagem = this;
+                if (this.vidasExtras < 3) {
+                    SOM_ITEM.currentTime = 0.0;
+                    SOM_ITEM.play();
+                    this.podeApanhar = true;
+                    this.animacao.excluirSprite(outro);
+                    this.colisor.excluirSprite(outro);
+                    context.save();
+                    context.fillStyle = 'green';
+                    context.strokeStyle = 'white';
+                    context.font = '30px sans-serif';
+                    context.fillText("+1 HP", personagem.x + 10, personagem.y - 5);
+                    context.strokeText("+1 HP", personagem.x + 10, personagem.y - 5);
+                    context.restore();
+                    this.vidasExtras++;
+                } else {
+                    SOM_ITEM_FAIL.currentTime = 0.0;
+                    SOM_ITEM_FAIL.play();
+                }
+            }
+            if (outro instanceof ItemBoots) {
+                var personagem = this;
+                if (this.velocidade < 6) {
+                    SOM_ITEM.currentTime = 0.0;
+                    SOM_ITEM.play();
+                    this.podeApanhar = true;
+                    this.animacao.excluirSprite(outro);
+                    this.colisor.excluirSprite(outro);
+                    this.velocidade = 6;
+                    context.save();
+                    context.fillStyle = 'yellow';
+                    context.strokeStyle = 'white';
+                    context.font = '30px sans-serif';
+                    context.fillText("SPEED BOOST", personagem.x + 10, personagem.y - 5);
+                    context.strokeText("SPEED BOOST", personagem.x + 10, personagem.y - 5);
+                    context.restore();
+                } else {
+                    SOM_ITEM_FAIL.currentTime = 0.0;
+                    SOM_ITEM_FAIL.play();
+                }
+            }
+            if (outro instanceof ItemEnergyBar) {
+                var personagem = this;
+                if (this.tiroRapido === false) {
+                    this.tiroRapido = true;
+                    SOM_ITEM.currentTime = 0.0;
+                    SOM_ITEM.play();
+                    this.podeApanhar = true;
+                    this.animacao.excluirSprite(outro);
+                    this.colisor.excluirSprite(outro);
+                    context.save();
+                    context.fillStyle = 'yellow';
+                    context.strokeStyle = 'white';
+                    context.font = '30px sans-serif';
+                    context.fillText("FAST SHOT", personagem.x + 10, personagem.y - 5);
+                    context.strokeText("FAST SHOT", personagem.x + 10, personagem.y - 5);
+                    context.restore();
+                } else {
+                    SOM_ITEM_FAIL.currentTime = 0.0;
+                    SOM_ITEM_FAIL.play();
+                }
+            }
+            if (outro instanceof ItemShield) {
+                var personagem = this;
+                if (this.shielded === false) {
+                    personagem.shieldedPoints = 3;
+                    var imgShieldStatus = new Image();
+                    imgShieldStatus.src = 'img/Runic_Ice_Shield.png';
+                    var shieldStatus = new ItemShieldStatus(this.context, imgShieldStatus, this);
+                    this.animacao.novoSprite(shieldStatus);
+                    this.colisor.novoSprite(shieldStatus);
+                    this.shielded = true;
+                    SOM_ITEM.currentTime = 0.0;
+                    SOM_ITEM.play();
+                    this.podeApanhar = true;
+                    this.animacao.excluirSprite(outro);
+                    this.colisor.excluirSprite(outro);
+                    context.save();
+                    context.fillStyle = 'yellow';
+                    context.strokeStyle = 'white';
+                    context.font = '30px sans-serif';
+                    context.fillText("SHIELDED", personagem.x + 10, personagem.y - 5);
+                    context.strokeText("SHIELDED", personagem.x + 10, personagem.y - 5);
+                    context.restore();
+                } else {
+                    SOM_ITEM_FAIL.currentTime = 0.0;
+                    SOM_ITEM_FAIL.play();
+                }
             }
         }
-        if (outro instanceof ItemBoots) {
-            var personagem = this;
-            if (this.velocidade < 6) {
-                SOM_ITEM.currentTime = 0.0;
-                SOM_ITEM.play();
-                this.podeApanhar = true;
-                this.animacao.excluirSprite(outro);
-                this.colisor.excluirSprite(outro);
-                this.velocidade = 6;
-                context.save();
-                context.fillStyle = 'yellow';
-                context.strokeStyle = 'white';
-                context.font = '30px sans-serif';
-                context.fillText("SPEED BOOST", personagem.x + 10, personagem.y - 5);
-                context.strokeText("SPEED BOOST", personagem.x + 10, personagem.y - 5);
-                context.restore();
-            }
-        }
-        /*            else if (outro instanceof TiroMarauder) {
-
-                        this.podeApanhar = false;
-                        this.animacao.excluirSprite(this);
-                        this.animacao.excluirSprite(outro);
-                        this.colisor.excluirSprite(this);
-                        this.colisor.excluirSprite(outro);
-
-                        var exp1 = new Morto(this.context, this.imgMorto,
-                            this.x, this.y);
-                        this.animacao.novoSprite(exp1);
-
-                        var personagem = this;
-
-                        exp1.fimDaExplosao = function () {
-                            personagem.vidasExtras--;
-                            if (personagem.vidasExtras < 0) {
-                                if (personagem.acabaramVidas) personagem.acabaramVidas();
-                            } else {
-                                //recolocar a personagem no engine
-                                personagem.colisor.novoSprite(personagem);
-                                personagem.animacao.novoSprite(personagem);
-                                personagem.posicionar();
-                            }
-                        }
-                    }*/
-
     },
     posicionar: function () {
         this.direcao = PERSONAGEM_CIMA;
@@ -704,6 +799,19 @@ Personagem.prototype = {
         if (decorrido >= 2000) {
             this.podeApanhar = true;
             this.ultimoTempo = agora;
+        }
+    },
+    contadorApanhador: function () {
+        var agora = new Date().getTime();
+        var decorrido = agora - this.ultimoTempoShield;
+        if (decorrido >= 1200) {
+            this.podeApanhar = true;
+            this.ultimoTempoShield = agora;
+        }
+    },
+    checaShielded: function () {
+        if (this.shieldedPoints < 1) {
+            this.shielded = false;
         }
     }
 }

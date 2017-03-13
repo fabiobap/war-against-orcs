@@ -19,6 +19,8 @@ function Tazhadur(context, imagem, imgSangue) {
     this.x = 0;
     this.velocidadeY = 0;
     this.velocidadeX = 0;
+    this.ultimoX = 0;
+    this.ultimoY = 0;
 
     // Criando a spritesheet a partir da imagem recebida
     this.sheet = new Spritesheet(context, imagem, 1, 8);
@@ -36,6 +38,7 @@ function Tazhadur(context, imagem, imgSangue) {
     var tazhadur = this;
     SOM_TAZHADUR_APARECENDO.currentTime = 0.0;
     SOM_TAZHADUR_APARECENDO.play();
+    this.nome = "tazhadur";
 }
 
 Tazhadur.prototype = {
@@ -110,6 +113,8 @@ Tazhadur.prototype = {
         if (outro instanceof Tiro) {
             var tazhadur = this;
             tazhadur.vidasExtras--;
+            this.ultimoX = this.x;
+            this.ultimoY = this.y;
             var sangue = new Sangue(this.context, this.imgSangue, this.x, this.y);
             this.animacao.novoSprite(sangue);
             if (tazhadur.vidasExtras < 1) {
@@ -129,6 +134,8 @@ Tazhadur.prototype = {
         if (outro instanceof TiroEspecial) {
             var tazhadur = this;
             tazhadur.vidasExtras -= 3;
+            this.ultimoX = this.x;
+            this.ultimoY = this.y;
             var sangue = new Sangue(this.context, this.imgSangue, this.x, this.y);
             this.animacao.novoSprite(sangue);
             if (tazhadur.vidasExtras < 1) {
