@@ -829,7 +829,6 @@ versão 2.1
             if (ativaLoot === true) {
                 if (criatura.nome == "orcNormal" || criatura.nome == "warrior") {
                     var chance = Math.floor((Math.random() * 35) + 1);
-                    console.log(chance);
                     if (chance >= 3 && chance <= 6) {
                         novoHp(criatura);
                         ativaLoot = false;
@@ -848,7 +847,6 @@ versão 2.1
                     }
                 } else if (criatura.nome == "zerk") {
                     var chance = Math.floor((Math.random() * 12) + 1);
-                    console.log(chance);
                     if (chance >= 4 && chance <= 5) {
                         novoHp(criatura)
                         ativaLoot = false;
@@ -863,7 +861,6 @@ versão 2.1
                     }
                 } else if (criatura.nome == "tazhadur") {
                     var chance = Math.floor((Math.random() * 12) + 1);
-                    console.log(chance);
                     if (chance >= 3 && chance <= 7) {
                         novoHp(criatura)
                         ativaLoot = false;
@@ -879,7 +876,6 @@ versão 2.1
                 } else if (criatura.nome == "rider") {
 
                     var chance = Math.floor((Math.random() * 40) + 1);
-                    console.log(chance);
                     if (chance >= 3 && chance <= 8) {
                         novoHp(criatura)
                         ativaLoot = false;

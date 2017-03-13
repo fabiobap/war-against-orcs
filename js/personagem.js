@@ -64,7 +64,6 @@ function Personagem(context, teclado, imagem, imgMorto, personagemTipo, imgSpark
     this.ultimoTempoShield = new Date().getTime();
     this.ultimoTempoTiro = new Date().getTime();
     this.ultimoTempoTiroEspecial = new Date().getTime();
-    console.log(this.shielded);
 }
 Personagem.prototype = {
     atualizar: function () {
